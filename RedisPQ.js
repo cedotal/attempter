@@ -16,7 +16,7 @@ var RedisPQ = function(key) {
   };
   
   // pops work off of the PQ using the following rules:
-  // * only consider work schedule for earlier than the current unix second
+  // * only consider work scheduled for earlier than the current unix second
   // * sort results ascending by the scheduled unix second on which they should
   //   be ordered
   //
@@ -24,7 +24,7 @@ var RedisPQ = function(key) {
   // the PQ.
   //
   // we only return overdue results (as opposed to including results that are
-  // scheduled for the current second to avoid the following bug:
+  // scheduled for the current second) to avoid the following bug:
   // 1. popUpToThisMuchOverdueWork gets work scheduled for up to and including
   //    the current second S
   // 2. some other event adds a new work unit to the redis sorted set, scheduled
@@ -34,7 +34,8 @@ var RedisPQ = function(key) {
   //    handling it
   this.popAllOverdueWork = function(){
     // you know what would be bad? if we called unixTimestamp() twice in
-    // separate places, and that caused us to delete un-popped units.
+    // separate places, and a difference between the two caused us to delete
+    // un-popped units.
     var timestamp = unixTimestamp();
     
     var zrangebyscorePromise = redis.zrangebyscore([key, 0, timestamp - 1], 'WITHSCORES');
