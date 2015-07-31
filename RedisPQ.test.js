@@ -7,8 +7,10 @@ var RedisPQ = require('./RedisPQ');
 var Redis = require('ioredis');
 var redis = new Redis(process.env.REDIS_URL);
 
+var unixTimestamp = require('./unixTimestamp');
+
 var errorHandler = function(message){
-  throw new Error(message);
+  throw new Error(message.stack);
 };
 
 // 1. basic test of add() and popAllOverdueWork()
@@ -87,22 +89,22 @@ redis.del(key2)
   return assert.equal(cardinality, 0);
 })
 // intermix adding timestamps that are:
-// * real, but in 1970
+// * real, and definitely in the past
 // * real, but in the far future
 .then(function(assertionResponse){
-  return redisPQ2.add(1, 0)
+  return redisPQ2.add(1, unixTimestamp() - 1000)
 })
 .then(function(numberAdded){
   return redisPQ2.add(2, 100000000000000000)
 })
 .then(function(numberAdded){
-  return redisPQ2.add(3, 1)
+  return redisPQ2.add(3, unixTimestamp() - 1000)
 })
 .then(function(numberAdded){
   return redisPQ2.add(4, 100000000000000001)
 })
 .then(function(numberAdded){
-  return redisPQ2.add(5, 2)
+  return redisPQ2.add(5, unixTimestamp() - 1000)
 })
 .then(function(numberAdded){
   return redisPQ2.add(6, 100000000000000002)
@@ -122,11 +124,11 @@ redis.del(key2)
 .then(function(allOverdueWork){
   assert.equal(allOverdueWork.length, 3);
   assert.equal(allOverdueWork[0].value, 1);
-  assert.equal(allOverdueWork[0].scheduledTime, 0);
+  assert.equal(allOverdueWork[0].scheduledTime < unixTimestamp(), true);
   assert.equal(allOverdueWork[1].value, 3);
-  assert.equal(allOverdueWork[1].scheduledTime, 1);
+  assert.equal(allOverdueWork[1].scheduledTime < unixTimestamp(), true);
   assert.equal(allOverdueWork[2].value, 5);
-  assert.equal(allOverdueWork[2].scheduledTime, 2);
+  assert.equal(allOverdueWork[2].scheduledTime < unixTimestamp(), true);
   // just return something for Promise style's sake
   return undefined;
 })
