@@ -38,7 +38,7 @@ An instance of Attempter is created with the following arguments:
   the process of loading units from the work queue requires a single network
   connection, so take that into account when you pass a value here. Defaults
   to 480.
-* **retryDelay (Number, not required)**: In seconds. Defaults to 10.
+* **retryDelay (Number, not required)**: In milliseconds. Defaults to 10000.
 
 An instance of attempter does the following once created:
 * Constantly attempts to load work into itself from a Redis-backed priority
@@ -58,8 +58,8 @@ an integer, which corresponds to a database row containing the work to be done.)
 An Attempter is NOT responsible for putting work in this sorted set! If another
 process does not put work in, Attempter will never do anything.
 
-The score of members of the sorted set is a Unix timestamp to the second (not
-millisecond). This is required, since Attempter uses this to determine whether
+The score of members of the sorted set is a Unix timestamp to the millisecond.
+This is required, since Attempter uses this to determine whether
 events should be ordered or should continue to wait on the queue. Earlier
 timestamps are popped off first.
 
