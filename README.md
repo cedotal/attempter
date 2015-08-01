@@ -63,17 +63,29 @@ This is required, since Attempter uses this to determine whether
 events should be ordered or should continue to wait on the queue. Earlier
 timestamps are popped off first.
 
-Memory usage
+Physical limits and failure conditions
 ------------
 
-On Ubuntu 14.04.2 LTS, inserting 1e7 members into a pure-JavaScript priority
+The current physical limit of this system is the memory of the host OS. Here's
+how it should first fail as system load rises from 0:
+* Given N units already in an Attempter's internal, pure-JS priority queue, the
+  host system has enough memory to allow it to pull P members off of a redis key
+  (using popAllOverdueWork) and then hold them in memory while inserting them
+  each into a pure-Javascript priority queue
+* >P units simultaneously exist in the Attempter's Redis sorted set
+* The Attempter attempts to pop all of them at once
+* Memory runs out
+* Process crashes
+
+On Ubuntu 14.04.2 LTS, inserting 1e7 Numbers into a pure-JavaScript priority
 queue (implemented by https://github.com/adamhooper/js-priority-queue and using
 that library's default BinaryHeapStrategy) takes up about 150 megabytes of
-memory.
+memory. JS Numbers are 4 bytes, and the binary heap should use 1e7 nodes, each
+of which contains a Number and two Number-sized pointers, for 4 * 3 * 1e7 bytes,
+so this actually seems pretty accurate.
 
-Since we'll be running this in a container with at least twice that
-much free, the number of work units that are pulled into an
-Attempter's in-program queue is 1e7 
+If an Attempter-hosting process is crashing because it's out of memory, use the
+above information to debug/design a more scalable solution.
 
 
 Reconciliation
