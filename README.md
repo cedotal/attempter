@@ -1,8 +1,8 @@
 Attempter
 ============
 
-Attempter is a module that attempts to perform some arbitrary action and, upon
-failure, retries it.
+Attempter is a module that attempts to perform attempts to perform actions of
+the same type and, upon failure, retries them.
 
 What attempter is for
 ---------------
@@ -66,13 +66,13 @@ timestamps are popped off first.
 Physical limits and failure conditions
 ------------
 
-The current physical limit of this system is the memory of the host OS. Here's
+The current physical limit of this module is the memory of the host OS. Here's
 how it should first fail as system load rises from 0:
 * Given N units already in an Attempter's internal, pure-JS priority queue, the
   host system has enough memory to allow it to pull P members off of a redis key
   (using popAllOverdueWork) and then hold them in memory while inserting them
   each into a pure-Javascript priority queue
-* >P units simultaneously exist in the Attempter's Redis sorted set
+* At some point, >P units simultaneously exist in the Attempter's RedisPQ key
 * The Attempter attempts to pop all of them at once
 * Memory runs out
 * Process crashes
@@ -80,9 +80,9 @@ how it should first fail as system load rises from 0:
 On Ubuntu 14.04.2 LTS, inserting 1e7 Numbers into a pure-JavaScript priority
 queue (implemented by https://github.com/adamhooper/js-priority-queue and using
 that library's default BinaryHeapStrategy) takes up about 150 megabytes of
-memory. JS Numbers are 4 bytes, and the binary heap should use 1e7 nodes, each
+memory. (JS Numbers are 4 bytes, and the binary heap should use 1e7 nodes, each
 of which contains a Number and two Number-sized pointers, for 4 * 3 * 1e7 bytes,
-so this actually seems pretty accurate.
+so this estimate seems pretty accurate.)
 
 If an Attempter-hosting process is crashing because it's out of memory, use the
 above information to debug/design a more scalable solution.
