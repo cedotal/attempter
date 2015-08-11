@@ -1,7 +1,8 @@
 {
   "name": "Attempter",
-  "version": "0.0.1",
-  "description": "A module that attempts to perform actions of the same type, and retries them on failure",
+  "version": "0.1",
+  "description": "A module that attempts to perform actions of a similr type, and retries them on failure",
+  "main": "lib/Attempter.js".
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,6 +13,7 @@
     "js-priority-queue": "^0.1.2"
   },
   "devDependencies": {
-    "request-promise": "^0.4.3"
+    "request-promise": "^0.4.3",
+    "xml2js": "^0.4.10"
   }
 }
