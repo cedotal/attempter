@@ -9,14 +9,14 @@ What attempter is for
 
 Attempter is designed to handle system actions that:
 * Are initially requested from a process that needs to remain responsive
-** For instance, a web-facing process receives a request to perform a
+ * For instance, a web-facing process receives a request to perform a
    long-running background task
 * In terms of running time, primarily consist of waiting on I/O
 * Can fail without compromising the correctness of the entire program
-** Yes, there's an almost complete overlap between that and tasks that are
+ * Yes, there's an almost complete overlap between that and tasks that are
    I/O-bound
 * Are subject to concurrency limits
-** For example: "no more than N attempts are permitted at once, because each
+ * For example: "no more than N attempts are permitted at once, because each
    attempt consumes a network connection and the host OS is limited to N
    simultaneous network connections"
 * Should be attempted immediately upon request, and then retried periodically
@@ -34,6 +34,10 @@ An instance of Attempter is created with the following arguments:
   a Promise that resolves if the attempt was successful and rejects if the
   attempts was unsuccessful. If it doesn't, unexpected program behavior will
   occur.
+ * Note that makeAttempt is responsible for queueing up any successor events
+   once it's created. For example, if a group of child objects need to be
+   created after a parent object, makeAttempt must queue up the creation of the
+   child objects after the parent object is created.
 * **maxActiveAttempts (Number, not required)**: A concurrency limiter. Note that
   the process of loading units from the work queue requires a single network
   connection, so take that into account when you pass a value here. Defaults
@@ -52,8 +56,9 @@ The Redis Priority Queue
 
 The Redis priority queue is a sorted set. Members can be represented however the
 user pleases, as long as the process that creates work and the makeAttempt
-function agree on a format. (One simple strategy is to represent work units as
-an integer, which corresponds to a database row containing the work to be done.)
+function agree on a format. For example, one simple strategy is to represent
+work units as an integer, which corresponds to a database row containing the
+work to be done.
 
 An Attempter is NOT responsible for putting work in this sorted set! If another
 process does not put work in, Attempter will never do anything.
