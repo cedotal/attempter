@@ -22,22 +22,12 @@ var testUnitCount = process.argv[2] || 1000;
 
 var testURL = process.argv[3] || "http://nytimes.com";
 
-var zaddArgs = [pqKey];
-for (var i = 0; i < testUnitCount; i++){
-  // in redis-land, scores go first
-  zaddArgs.push(0); // 1970; handle immediately
-  zaddArgs.push(i);
-}
-
 // 1. make simple GET requests
 
 // start our tests with a clean slate
 var test1Promise = redis.del(pqKey)
-// then add our test units
-.then(function(numberDeleted){
-  return redis.zadd(zaddArgs);
-})
-.then(function(numberAdded){
+// then create an attempter
+.then(function(numberOfKeysCleared){
   var promise = new Promise(function(resolve, reject){
     var successfulAttempts = 0;
   
@@ -59,6 +49,7 @@ var test1Promise = redis.del(pqKey)
     var beginTime = unixTimestamp();
     
     var checkProgress = function(){
+      console.log(successfulAttempts);
       if (successfulAttempts >= testUnitCount) {
         var endTime = unixTimestamp();
         console.log(testUnitCount + " successful attempts have been made.");
@@ -80,7 +71,20 @@ var test1Promise = redis.del(pqKey)
     var attempter = new Attempter({
       namespace: namespace,
       maxActiveAttempts: 480,
-      makeAttempt: makeAttempt
+      makeAttempt: makeAttempt,
+      getPendingWorkUnits: function(){
+        var promise = new Promise(function(resolve, reject){
+          // member before score when interacting with the PQ directly
+          var workUnits = [];
+          for (var i = 0; i < testUnitCount; i++){
+            // in redis-land, scores go first
+            workUnits.push(i);
+            workUnits.push(0); // 1970; should get popped immediately
+          }
+          resolve(workUnits);
+        })
+        return promise;
+      }
     });
   });
   return promise;

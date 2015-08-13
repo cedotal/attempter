@@ -20,13 +20,6 @@ var pqKey = namespace + '_pq';
 
 var testUnitCount = process.argv[2] || 1000;
 
-var zaddArgs = [pqKey];
-for (var i = 0; i < testUnitCount; i++){
-  // in redis-land, scores go before members
-  zaddArgs.push(0); // 1970; handle immediately
-  zaddArgs.push(i);
-}
-
 // 1. POST HITs to the Mechanical Turk sandbox
 
 var crypto = require('crypto');
@@ -62,10 +55,6 @@ var service = "AWSMechanicalTurkRequester";
 
 // start our tests with a clean slate
 var test1Promise = redis.del(pqKey)
-// then add our test members to Redis
-.then(function(numberDeleted){
-  return redis.zadd(zaddArgs);
-})
 // then ask MTurk sandbox to create an HITType for this test
 .then(function(numberAdded){
   var parameters = {
@@ -164,7 +153,20 @@ var test1Promise = redis.del(pqKey)
     var attempter = new Attempter({
       namespace: namespace,
       maxActiveAttempts: 480,
-      makeAttempt: makeAttempt
+      makeAttempt: makeAttempt,
+      getPendingWorkUnits: function(){
+        var promise = new Promise(function(resolve, reject){
+          // member before score when interacting with the PQ directly
+          var workUnits = [];
+          for (var i = 0; i < testUnitCount; i++){
+            // in redis-land, scores go first
+            workUnits.push(i);
+            workUnits.push(0); // 1970; should get popped immediately
+          }
+          resolve(workUnits);
+        })
+        return promise;
+      }
     });
   });
   return promise;
