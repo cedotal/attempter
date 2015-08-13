@@ -1,8 +1,8 @@
 Attempter
 ============
 
-Attempter is a module that attempts to perform attempts to perform actions of
-the same type and, upon failure, retries them.
+Attempter is a module that attempts to perform actions of a similar type and,
+upon failure, retries them.
 
 What attempter is for
 ---------------
