@@ -39,10 +39,11 @@ An instance of Attempter is created with the following arguments:
    created after a parent object, makeAttempt must queue up the creation of the
    child objects after the parent object is created.
 * **getPendingWorkUnits (function, required)**: Goes to the underlying source of
-truth for work units and their state (usually an on-disk datbase) and returns a
+truth for work units and their state (usually an on-disk database) and returns a
 promise that resolves with a value equal to an array of format [member, score,
 member, score...] containing work units to be processed and their scores. The
-Attempter, on receiving these
+Attempter, on receiving these, inserts them into the redis work queue. If the
+promise rejects, the Attempter instance will retry until it works.
  * Note that getPendingWorkUnits runs immediately when an Attempter is
  initialized, and then periodically as dictated by the reconciliationInterval
  option.
