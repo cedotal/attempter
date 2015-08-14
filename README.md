@@ -77,6 +77,10 @@ work units as an integer, which corresponds to a database row containing the
 work to be done. (However, note that NOT putting all information required by
 a request on Redis will require a trip to a data store during makeAttempt!).
 
+The RedisPQ module wraps Redis such that, despite the fact that Redis stores all
+members as strings, RedisPQ will attempt to return Number and Object types as
+they were originally inserted.
+
 An Attempter is only responsible for putting work into this sorted set when it
 is initialized, and when it is reconciled. If another process wants work
 attempted prior to the next reconciliation, it will have to insert it into
