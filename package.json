@@ -1,6 +1,6 @@
 {
   "name": "attempter",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A module that attempts to perform actions of a similar type, and retries them on failure",
   "main": "lib/Attempter.js",
   "scripts": {
